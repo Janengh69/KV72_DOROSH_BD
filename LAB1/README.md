@@ -26,7 +26,7 @@ TABLESPACE pg_default;
 ALTER TABLE public.client
     OWNER to postgres;
  ```   #КВ-72 Дорош Карина ##Лабораторна робота №1 ###Ознайомлення з базовими операціями СУБД PostgreSQL Варіант №4 Сутності
-
+```
 
 
 2) **Працівник:**
