@@ -9,7 +9,7 @@
   - Номер телефону;
   - Адреса.
   ```
-  CREATE TABLE public.client
+CREATE TABLE public.client
 (
     full_name text COLLATE pg_catalog."default" NOT NULL,
     client_type text COLLATE pg_catalog."default" NOT NULL,
@@ -25,9 +25,8 @@ TABLESPACE pg_default;
 
 ALTER TABLE public.client
     OWNER to postgres;
- ```   #КВ-72 Дорош Карина ##Лабораторна робота №1 ###Ознайомлення з базовими операціями СУБД PostgreSQL Варіант №4 Сутності
-```
-
+    
+ ```
 
 2) **Працівник:**
   - ID;
@@ -36,7 +35,7 @@ ALTER TABLE public.client
   - Години роботи;
   - Заробітня плата.
   ```
-  CREATE TABLE public.worker
+CREATE TABLE public.worker
 (
     id integer NOT NULL DEFAULT nextval('"Worker_ID_seq"'::regclass),
     full_name text COLLATE pg_catalog."default" NOT NULL,
@@ -48,8 +47,9 @@ ALTER TABLE public.client
     CONSTRAINT dep_number FOREIGN KEY (dep_number)
         REFERENCES public.department (number_d) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT check_position CHECK ("position" = ANY (ARRAY['heavier'::text, 'casher'::text, 'manager'::text])) NOT VALID
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT check_position CHECK ("position" = ANY (ARRAY['heavier'::text, 'casher'::text, 'manager'::text]))
 )
 WITH (
     OIDS = FALSE
@@ -58,13 +58,13 @@ TABLESPACE pg_default;
 
 ALTER TABLE public.worker
     OWNER to postgres;
-  ```
+```
 3) **Вантаж:**
   - Штрихкод;
   - Тип вантажу;
   - Оголошена вартість.
   ``` 
-  CREATE TABLE public.cargo
+CREATE TABLE public.cargo
 (
     barcode text COLLATE pg_catalog."default" NOT NULL,
     cargo_type text COLLATE pg_catalog."default" NOT NULL,
@@ -76,6 +76,8 @@ ALTER TABLE public.worker
         REFERENCES public.client (client_number) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT check_barcode CHECK (length(barcode) < 10)
 )
 WITH (
     OIDS = FALSE
@@ -104,8 +106,10 @@ CREATE TABLE public.packing
     CONSTRAINT packing_cargo FOREIGN KEY (cargo_barcode)
         REFERENCES public.cargo (barcode) MATCH SIMPLE
         ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT weight_check CHECK (weight < 1000::numeric) NOT VALID
+        ON DELETE NO ACTION
+        NOT VALID,
+    CONSTRAINT weight_check CHECK (weight < 1000::numeric) NOT VALID,
+    CONSTRAINT check_weight CHECK (weight < 1000::numeric)
 )
 WITH (
     OIDS = FALSE
@@ -127,7 +131,8 @@ ALTER TABLE public.packing
     adress text COLLATE pg_catalog."default" NOT NULL,
     d_type text COLLATE pg_catalog."default" NOT NULL,
     CONSTRAINT department_pkey PRIMARY KEY (number_d),
-    CONSTRAINT chk_dep_type CHECK (d_type = ANY (ARRAY['cargo'::text, 'postal'::text, 'mini'::text])) NOT VALID
+    CONSTRAINT check_dep CHECK (number_d < 400),
+    CONSTRAINT chk_dep_type CHECK (d_type = ANY (ARRAY['cargo'::text, 'postal'::text, 'mini'::text]))
 )
 WITH (
     OIDS = FALSE
