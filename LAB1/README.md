@@ -2,6 +2,8 @@
 ##  Лабораторна робота №1
 ###  Ознайомлення з базовими операціями СУБД PostgreSQL
 #### Варіант №4
+**[Посилання](https://docs.google.com/document/d/1HRYdYICEkETOSFuok1jywzDriqnLt-tQhTs8fu8qGAs/edit?usp=sharing) на документ з описом структури БД**  
+   
    **Сутності**
 1) **Клієнт:**
   - Тип клієнту;
@@ -44,7 +46,7 @@ CREATE TABLE public.worker
     " salary" integer NOT NULL,
     dep_number integer,
     CONSTRAINT "Worker_pkey" PRIMARY KEY (id),
-    CONSTRAINT dep_number FOREIGN KEY (dep_number)
+    CONSTRAINT dep_number FOREIGN KEY (dep_number
         REFERENCES public.department (number_d) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
