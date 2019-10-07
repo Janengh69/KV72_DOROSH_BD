@@ -132,6 +132,7 @@ ALTER TABLE public.packing
     number_d integer NOT NULL,
     adress text COLLATE pg_catalog."default" NOT NULL,
     d_type text COLLATE pg_catalog."default" NOT NULL,
+    street_number text COLLATE pg_catalog."default",
     CONSTRAINT department_pkey PRIMARY KEY (number_d),
     CONSTRAINT check_dep CHECK (number_d < 400),
     CONSTRAINT chk_dep_type CHECK (d_type = ANY (ARRAY['cargo'::text, 'postal'::text, 'mini'::text]))
