@@ -1,6 +1,6 @@
 #  КВ-72 Дорош Карина
-##  Лабораторна робота №1
-###  Ознайомлення з базовими операціями СУБД PostgreSQL
+##  Лабораторна робота №2
+### Ознайомлення з базовими операціями СУБД PostgreSQL
 #### Варіант №4
 **[Посилання](https://docs.google.com/document/d/1HRYdYICEkETOSFuok1jywzDriqnLt-tQhTs8fu8qGAs/edit?usp=sharing) на документ з описом структури БД**  
    
@@ -43,7 +43,7 @@ CREATE TABLE public.worker
     full_name text COLLATE pg_catalog."default" NOT NULL,
     "position" text COLLATE pg_catalog."default" NOT NULL,
     working_hours text COLLATE pg_catalog."default",
-    " salary" integer NOT NULL,
+    salary integer NOT NULL,
     dep_number integer,
     CONSTRAINT "Worker_pkey" PRIMARY KEY (id),
     CONSTRAINT dep_number FOREIGN KEY (dep_number
@@ -70,14 +70,15 @@ CREATE TABLE public.cargo
 (
     barcode text COLLATE pg_catalog."default" NOT NULL,
     cargo_type text COLLATE pg_catalog."default" NOT NULL,
-    estimated_value numeric(10,2) NOT NULL,
+    estimated_value numeric(10,2),
     client_id text COLLATE pg_catalog."default" NOT NULL,
     worker_id integer NOT NULL,
+    delivered boolean,
     CONSTRAINT cargo_pkey PRIMARY KEY (barcode),
     CONSTRAINT client_id_ref FOREIGN KEY (client_id)
         REFERENCES public.client (client_number) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+        ON UPDATE CASCADE
+        ON DELETE CASCADE
         NOT VALID,
     CONSTRAINT check_barcode CHECK (length(barcode) < 10)
 )
@@ -88,6 +89,18 @@ TABLESPACE pg_default;
 
 ALTER TABLE public.cargo
     OWNER to postgres;
+
+COMMENT ON COLUMN public.cargo.delivered
+    IS 'comment';
+
+-- Index: fki_client_id_ref
+
+-- DROP INDEX public.fki_client_id_ref;
+
+CREATE INDEX fki_client_id_ref
+    ON public.cargo USING btree
+    (client_id COLLATE pg_catalog."default")
+    TABLESPACE pg_default;
  ```
 4) **Пакування:**
   - Код пакування;
