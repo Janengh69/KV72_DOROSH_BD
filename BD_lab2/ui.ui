@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>639</width>
-    <height>507</height>
+    <width>798</width>
+    <height>529</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>510</x>
-      <y>150</y>
-      <width>84</width>
-      <height>28</height>
+      <x>710</x>
+      <y>70</y>
+      <width>71</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
@@ -30,8 +30,8 @@
    <widget class="QComboBox" name="table">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>70</y>
+      <x>40</x>
+      <y>50</y>
       <width>131</width>
       <height>41</height>
      </rect>
@@ -66,7 +66,7 @@
     <property name="geometry">
      <rect>
       <x>200</x>
-      <y>70</y>
+      <y>50</y>
       <width>151</width>
       <height>41</height>
      </rect>
@@ -90,8 +90,8 @@
    <widget class="QLabel" name="actLabel">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>30</y>
+      <x>30</x>
+      <y>10</y>
       <width>291</width>
       <height>16</height>
      </rect>
@@ -99,7 +99,7 @@
     <property name="font">
      <font>
       <family>Ubuntu</family>
-      <pointsize>14</pointsize>
+      <pointsize>11</pointsize>
       <weight>50</weight>
       <italic>false</italic>
       <bold>false</bold>
@@ -112,9 +112,9 @@
    <widget class="QTextEdit" name="textEdit">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>50</y>
-      <width>181</width>
+      <x>370</x>
+      <y>40</y>
+      <width>321</width>
       <height>70</height>
      </rect>
     </property>
@@ -122,10 +122,10 @@
    <widget class="QPushButton" name="genData">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>140</y>
-      <width>451</width>
-      <height>61</height>
+      <x>20</x>
+      <y>330</y>
+      <width>751</width>
+      <height>51</height>
      </rect>
     </property>
     <property name="text">
@@ -135,37 +135,161 @@
    <widget class="QTextEdit" name="textSearch">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>260</y>
-      <width>231</width>
-      <height>181</height>
+      <x>20</x>
+      <y>190</y>
+      <width>611</width>
+      <height>131</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
     </property>
    </widget>
    <widget class="QLabel" name="labelSearch">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>220</y>
+      <x>30</x>
+      <y>140</y>
       <width>151</width>
       <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>Full-text search</string>
+     <string>Enter word or phrase:</string>
     </property>
    </widget>
    <widget class="QPushButton" name="pushButton_2">
     <property name="geometry">
      <rect>
-      <x>330</x>
-      <y>260</y>
-      <width>271</width>
-      <height>41</height>
+      <x>20</x>
+      <y>390</y>
+      <width>751</width>
+      <height>61</height>
      </rect>
     </property>
     <property name="text">
      <string>Find specified cargo --&gt;</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="search">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>190</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Search word</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="full_text_box">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>140</y>
+      <width>151</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <item>
+     <property name="text">
+      <string>cargo</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>worker</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>client</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>packing</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>department</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>300</y>
+      <width>63</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_3">
+    <property name="geometry">
+     <rect>
+      <x>660</x>
+      <y>230</y>
+      <width>111</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>11</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>Search pharse</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="info">
+    <property name="geometry">
+     <rect>
+      <x>440</x>
+      <y>110</y>
+      <width>241</width>
+      <height>61</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:red</string>
+    </property>
+    <property name="text">
+     <string> delete: id = 10;
+ insert: id =10, cargo_type='book'... 
+ update: (where) id = 10 
+ (what)cargo_type = 'notebook' </string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="error">
+    <property name="geometry">
+     <rect>
+      <x>370</x>
+      <y>10</y>
+      <width>201</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color:red;</string>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>
@@ -174,7 +298,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>639</width>
+     <width>798</width>
      <height>25</height>
     </rect>
    </property>
