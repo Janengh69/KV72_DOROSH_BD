@@ -2,13 +2,11 @@ import psycopg2 as ps
 from configparser import ConfigParser
 import datetime
 from datetime import timedelta
-import pandas as pd
-import plotly
-from terminaltables import AsciiTable
 import json
 
 
 class Database:
+
     def config(self, filename='config.ini', section='postgresql'):
         parser = ConfigParser()
         parser.read(filename)
@@ -35,12 +33,11 @@ class Database:
             print(error)
             return False
 
-
     def __init__(self):
         self.conn = None
         self.error = ''
         self.gen_error = ''
-        self.erFlag = True
+        self.erFlag = False
         self.Gen = True
         self.colnames = list()
         try:
@@ -63,12 +60,12 @@ class Database:
         values = values[:-1]
         return self.request("INSERT INTO {0} ({1}) VALUES ({2}) ".format(table, arguments, values))
 
-
     def request(self, req):
         try:
             cursor = self.conn.cursor()
             print(req)
             cursor.execute(req)
+            self.colnames = [desc[0] for desc in cursor.description]
             self.conn.commit()
             return True
         except(Exception, ps.DatabaseError, ps.ProgrammingError) as error:
@@ -81,8 +78,6 @@ class Database:
         from_range = int(Cargo.textEdit.toPlainText())
         to_range = int (Cargo.textEdit_2.toPlainText())
         checked = str(not Cargo.checkBox.checkState()==0).lower()
-
-
         req = " SELECT * FROM (SELECT * FROM cargo INNER JOIN worker ON cargo.worker_id = worker.id) AS result WHERE (estimated_value BETWEEN {0} AND {1}) AND delivered = {2};".format(from_range, to_range,checked)
         result = self.get_request(req)
         r_str = ""
@@ -101,9 +96,6 @@ class Database:
         print("UPDATE {0} SET {1} WHERE {2}".format(table, property[1], property[0]))
         return self.request("UPDATE {0} SET {1} WHERE {2}".format(table, property[1], property[0]))
 
-    #    dab = cursor.fetchall()
-    #    print(dab)
-    #     cursor.close()
     def generate_values(self):
         with open('data.json', 'r+') as f:
             data = json.load(f)
@@ -131,7 +123,6 @@ class Database:
         data = {'last_number': start_last_number + amount, 'estimated_value': start_estimated_value + amount}
         with open('data.json', 'w+') as f:
             json.dump(data, f)
-
 
     def gen_values(self, Controller):
         print(Controller)
@@ -189,7 +180,7 @@ class Database:
         for word in self.colnames:
             Controller.columns += word + "          "
         Controller.columns += '\n'
-        Controller.textSearch.setText(self.columns + temp)
+        Controller.textSearch.setText(Controller.columns + temp)
 
     def word_only(self, Controller):
         Controller.full_text = Controller.textSearch.toPlainText()
@@ -204,8 +195,6 @@ class Database:
             return
         for word in Controller.full_text[1].strip().split(' '):
             template += "'" + word + "'" + '::tsquery || '
-        temp=' '
-        temp = str(map(lambda word: "'" + word + "'" + '::tsquery || ',Controller.full_text[1].strip().split(' ')))
         template = template[:-3]
         req = "SELECT * FROM {1} WHERE to_tsvector({0}) @@ ({2})".format(Controller.full_text[0].strip(), Controller.full_search_table, template)
 
@@ -213,12 +202,12 @@ class Database:
         Controller.columns = str()
        # table = AsciiTable(name)
        # print(table.table)
-        temp = str()
+        result = str()
         for word in name:
             for i in word:
-                temp += str(i) + '  '
-            temp+= '\n'
+                result += str(i) + '  '
+            result+= '\n'
         for word in self.colnames:
-            self.colnames += word + "          "
-        self.colnames += '\n'
-        Controller.textSearch.setText(self.colnames + temp)
+            Controller.columns += word + "          "
+        Controller.columns += '\n'
+        Controller.textSearch.setText(Controller.columns + result)
