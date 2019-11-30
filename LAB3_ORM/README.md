@@ -156,4 +156,5 @@ TABLESPACE pg_default;
 ALTER TABLE public.department
     OWNER to postgres;
   ```
-
+Було створено два тригери ```AFTER DELETE ``` та ```AFTER INSERT``` 
+Перший віднімає від оголошеної вартості 10 гривень при видаленні пакування, а другий інвертує ім'я, яке перед додаванням клієнту до бази.
