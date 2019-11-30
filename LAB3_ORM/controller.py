@@ -1,6 +1,5 @@
 from view import *
 from model import *
-from database import *
 #from cargo_d import *
 import sys
 import sys  # sys нужен для передачи argv в QApplication
@@ -25,7 +24,7 @@ class Controller(Ui_Database):
     def __init__(self, MainWindow):
         self.ui = Ui_Database(MainWindow)
         self.db = Database()
-        self.client = Client(full_name="Karyna", client_number="+380995425358", client_type='sender')
+        # self.client = Client(full_name="Karyna", client_number="+380995425358", client_type='sender')
 
         super().__init__(MainWindow)
         self.gen_label.setText('')

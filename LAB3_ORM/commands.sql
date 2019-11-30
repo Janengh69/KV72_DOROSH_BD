@@ -105,8 +105,7 @@ where worker_id > 1000 and worker_id <  1
                                                                     -- Execution Time: 0.018 ms
 
 
-
-
+-- trigger after delete
 CREATE OR REPLACE FUNCTION func() RETURNS trigger AS
 $$BEGIN
    UPDATE "cargo" SET estimated_value = estimated_value - 10
@@ -115,45 +114,84 @@ $$BEGIN
 END;$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER add_money
-   BEFORE DELETE ON packing FOR EACH ROW
+   AFTER DELETE ON packing FOR EACH ROW
    EXECUTE PROCEDURE func();
 
 select * from cargo where barcode = '26591'
 
-    delete from packing where cargo_barcode = '26591'
+delete from packing where cargo_barcode = '26591'
 
 
 
-
+-- trigger after insert
 
 CREATE OR REPLACE FUNCTION UPD()
 RETURNS trigger AS
 $$
 begin
 UPDATE client SET full_name = (SELECT REVERSE (n2.full_name) from client as n2 where (n2.client_number = client.client_number));
-end;
-$$ language plpgsql;
-
-CREATE TRIGGER change_name
-   BEFORE DELETE ON client FOR EACH ROW
-   EXECUTE PROCEDURE func();
-
-
-insert into client (full_name, client_number, client_type) values ('anyrak', '455678900987', 'sender')
-
-
-select * from client where client_number = '455678900987';
-
-delete from client where client_number = '455678900987';
-CREATE OR REPLACE FUNCTION UPD()
-RETURNS trigger AS
-$$
-begin
-UPDATE client SET full_name = REVERSE (old.full_name);
 return new;
 end;
 $$ language plpgsql;
 
 CREATE TRIGGER change_name
-   BEFORE DELETE ON client FOR EACH ROW
+   AFTER INSERT ON client FOR EACH ROW
    EXECUTE PROCEDURE UPD();
+
+insert into client (full_name, client_number, client_type) values ('anyrak', '455678900987', 'sender')
+
+select * from client where client_number = '455678900987';
+
+delete from client where client_number = '455678900987';
+
+
+-- transactions
+
+-- 1)
+START TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+select current_setting('transaction_isolation');
+
+
+--2)
+START TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+select current_setting('transaction_isolation');
+
+
+3)
+START TRANSACTION ISOLATION LEVEL READ COMMITTED;
+select current_setting('transaction_isolation');
+-- read commited
+
+insert into client (full_name, client_number, client_type) values ('anyrak', '09658995', 'sender')
+START TRANSACTION ISOLATION LEVEL READ COMMITTED;
+select current_setting('transaction_isolation');
+select * from department where number_d = 69
+COMMIT
+insert into department(number_d, address, d_type, street_number) values (69, 'Kovalskogo', 'postal', '8i')
+delete from department where number_d=69
+update department set street_number = '100'
+rollback
+
+
+select current_setting('transaction_isolation');
+START TRANSACTION ISOLATION LEVEL READ COMMITTED;
+select * from department;
+commit
+rollbACK
+
+
+
+insert into department(number_d, address, d_type, street_number) values (69, 'Kovalskogo', 'postal', '8i')
+
+select * from department where number_d = 69
+update department set street_number = '10'
+
+
+START TRANSACTION ISOLATION LEVEL REPEATABLE READ;
+select current_setting('transaction_isolation');
+select * from department where number_d = 69
+COMMIT
+rollback
+delete from department where number_d=69
+update department set street_number = '9'
+START TRANSACTION ISOLATION LEVEL READ COMMITTED;
