@@ -1,9 +1,8 @@
-from sqlalchemy import Table, Column, create_engine
+from sqlalchemy import Table, Column, create_engine, insert, delete, text, select, update
 from sqlalchemy.orm import relationship
 from sqlalchemy import Integer, ForeignKey, String, Unicode, Numeric, Boolean, DateTime, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import backref, relation
-import pandas as pd
 
 DeclarativeBase = declarative_base()
 # metadata = DeclarativeBase.metadata
@@ -14,7 +13,7 @@ class RefCargoWorker(DeclarativeBase):
 
     cargo_barcode = Column('cargo_barcode', String, ForeignKey('cargo.barcode'))
     worker_id = Column('worker_id', Integer, ForeignKey('worker.id'))
-    time = Column(TIMESTAMP, primary_key=True)
+    time = Column('time', TIMESTAMP, primary_key=True)
 
 
 class RefClientWorker(DeclarativeBase):
@@ -22,7 +21,7 @@ class RefClientWorker(DeclarativeBase):
 
     worker_id = Column('worker_id', Integer, ForeignKey('worker.id'))
     client_number = Column('client_number', String, ForeignKey('client.client_number'))
-    time = Column(TIMESTAMP, primary_key=True)
+    time = Column('time', TIMESTAMP, primary_key=True)
 
 
 class Client(DeclarativeBase):
