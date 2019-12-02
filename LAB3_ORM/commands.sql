@@ -9,34 +9,71 @@ explain (costs off) select * from cargo where worker_id>831;                    
 
 
 create index on cargo(estimated_value); 196msec
-explain (analyze, costs off) select barcode from cargo where worker_id>6283 and estimated_value = 600;
-                                                                                            -- Bitmap Heap Scan on cargo (actual time=0.018..0.022 rows=4 loops=1)
-                                                                                            -- Recheck Cond: (estimated_value = '600'::numeric)
-                                                                                            -- Filter: (worker_id > 6283)
-                                                                                            -- Rows Removed by Filter: 1
-                                                                                            -- Heap Blocks: exact=5
-                                                                                            --   ->  Bitmap Index Scan on cargo_estimated_value_idx (actual time=0.010..0.010 rows=5 loops=1)
-                                                                                            -- Index Cond: (estimated_value = '600'::numeric)
-                                                                                            -- Planning Time: 0.084 ms
-                                                                                            -- Execution Time: 0.037 ms
-
+explain (analyze, costs off) select barcode from cargo where worker_id>(select avg(worker_id) from cargo) and estimated_value = 600;
+                                                                                        -- Bitmap Heap Scan on cargo (actual time=0.478..0.478 rows=0 loops=1)
+                                                                                        -- Recheck Cond: (estimated_value = '600'::numeric)
+                                                                                        -- Filter: ((worker_id)::numeric > $0)
+                                                                                        -- - Execution Time: 0.037 ms
+                                                                                        -- Heap Blocks: exact=1
+                                                                                        -- InitPlan 1 (returns $0)
+                                                                                        -- ->  Aggregate (actual time=0.448..0.449 rows=1 loops=1)
+                                                                                        -- ->  Seq Scan on cargo cargo_1 (actual time=0.011..0.192 rows=1340 loops=1)
+                                                                                        -- ->  Bitmap Index Scan on cargo_estimated_value_idx (actual time=0.018..0.019 rows=1 loops=1)
+                                                                                        -- Index Cond: (estimated_value = '600'::numeric)
+                                                                                        -- Planning Time: 0.497 ms
+                                                                                        -- Execution Time: 0.521 ms
 --                                                                                             covering index
 vacuum cargo;
 select avg(worker_id) from cargo;
-    explain (analyze, costs off) select barcode from cargo where worker_id>6283;
+explain (analyze, costs off) select barcode from cargo where worker_id>6283;
                                                                                             --   Index Scan using cargo_worker_id_idx on cargo (actual time=0.019..0.787 rows=2500 loops=1)
                                                                                             --   Index Cond: (worker_id > 6283)
                                                                                             --   Planning Time: 0.083 ms
                                                                                            --   Execution Time: 0.920 ms
+explain (costs off) select barcode from cargo where worker_id> (select avg(worker_id) from cargo);
+                                                                                            -- Seq Scan on cargo (actual time=1.139..1.414 rows=670 loops=1)
+                                                                                            -- Filter: ((worker_id)::numeric > $0)
+                                                                                            -- Rows Removed by Filter: 670
+                                                                                            -- InitPlan 1 (returns $0)
+                                                                                            -- ->  Aggregate (actual time=0.613..0.614 rows=1 loops=1)
+                                                                                            -- ->  Seq Scan on cargo cargo_1 (actual time=0.006..0.360 rows=1340 loops=1)
+                                                                                            -- Planning Time: 0.172 ms
+                                                                                            -- Execution Time: 1.494 ms
+explain (analyze, costs off) select barcode from cargo where worker_id = (select MAX(worker_id) from cargo) and estimated_value = 600;
+                                                                                            -- Index Scan using cargo_worker_id_idx on cargo (actual time=0.181..0.182 rows=0 loops=1)
+                                                                                            -- Index Cond: (worker_id = $1)
+                                                                                            -- Filter: (estimated_value = '600'::numeric)
+                                                                                            -- Rows Removed by Filter: 1
+                                                                                            -- InitPlan 2 (returns $1)
+                                                                                            -- ->  Result (actual time=0.142..0.142 rows=1 loops=1)
+                                                                                            -- InitPlan 1 (returns $0)
+                                                                                            -- ->  Limit (actual time=0.134..0.136 rows=1 loops=1)
+                                                                                            -- ->  Index Only Scan Backward using cargo_worker_id_idx on cargo cargo_1 (actual time=0.132..0.132 rows=1 loops=1)
+                                                                                            -- Index Cond: (worker_id IS NOT NULL)
+                                                                                            -- Heap Fetches: 0
+                                                                                            -- Planning Time: 1.046 ms
+                                                                                            -- Execution Time: 0.264 ms
+
 
 create index on packing (packing_code, amount);
-explain (analyze, costs off) select packing_code from packing where packing_code>831 and amount>10;
-                                                                                            -- Index Only Scan using packing_packing_code_amount_idx on packing (actual time=0.426..0.426 rows=0 loops=1)
-                                                                                            -- Index Cond: ((packing_code > 831) AND (amount > 10))
-                                                                                            -- Heap Fetches: 0
-                                                                                            -- Planning Time: 0.471 ms
-                                                                                            -- Execution Time: 0.447 ms
-
+explain (analyze, costs off) select packing_code from packing where packing_code=(SELECT MIN(packing_code) from packing) and amount>(select avg(amount) from packing);
+                                                                                        --     "Index Only Scan using packing_packing_code_amount_idx on packing (actual time=0.569..0.570 rows=0 loops=1)"
+                                                                                        --     "  Index Cond: (packing_code = $1)"
+                                                                                        --     "  Filter: ((amount)::numeric > $2)"
+                                                                                        --     "  Rows Removed by Filter: 1"
+                                                                                        --     "  Heap Fetches: 0"
+                                                                                        --     "  InitPlan 2 (returns $1)"
+                                                                                        --     "    ->  Result (actual time=0.050..0.050 rows=1 loops=1)"
+                                                                                        --     "          InitPlan 1 (returns $0)"
+                                                                                        --     "            ->  Limit (actual time=0.046..0.046 rows=1 loops=1)"
+                                                                                        --     "                  ->  Index Only Scan using packing_packing_code_amount_idx on packing packing_1 (actual time=0.045..0.045 rows=1 loops=1)"
+                                                                                        --     "                        Index Cond: (packing_code IS NOT NULL)"
+                                                                                        --     "                        Heap Fetches: 0"
+                                                                                        --     "  InitPlan 3 (returns $2)"
+                                                                                        --     "    ->  Aggregate (actual time=0.487..0.488 rows=1 loops=1)"
+                                                                                        --     "          ->  Seq Scan on packing packing_2 (actual time=0.014..0.327 rows=1340 loops=1)"
+                                                                                        --     "Planning Time: 0.226 ms"
+                                                                                        --     "Execution Time: 0.631 ms"
 explain (analyze, costs off) select packing_code from packing where packing_code>831 and weight>10;
 
 
