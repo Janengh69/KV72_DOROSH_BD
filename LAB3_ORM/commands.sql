@@ -113,6 +113,7 @@ insert into ts(doc) values
   ('Люли, люли, заломаю'),    ('Люли, люли, заломаю');
 set default_text_search_config = russian;
 update ts set doc_tsv = to_tsvector(doc);
+
 create index on ts using gin(doc_tsv);
 select ctid, doc, doc_tsv from ts;-- number of page and position on the page
 select (unnest(doc_tsv)).lexeme, count(*) from ts group by 1 order by 2 desc;  -- amount of each words in document
@@ -127,38 +128,38 @@ select doc from ts where doc_tsv @@ to_tsquery('стояла & кудрявая'
 --                                                                     Index Cond: (doc_tsv @@ to_tsquery('стояла & кудрявая'::text))
 --                                                                     Planning Time: 0.233 ms
 --                                                                     Execution Time: 0.077 ms
+
+
+
+select doc from ts where doc_tsv @@ to_tsquery('залом:*');
+                                                                    -- "Bitmap Heap Scan on ts  (cost=12.31..23.45 rows=7 width=37) (actual time=0.081..0.150 rows=189 loops=1)"
+                                                                    -- "  Recheck Cond: (doc_tsv @@ to_tsquery('залом:*'::text))"
+                                                                    -- "  Heap Blocks: exact=7"
+                                                                    -- "  ->  Bitmap Index Scan on ts_doc_tsv_idx  (cost=0.00..12.31 rows=7 width=0) (actual time=0.072..0.072 rows=189 loops=1)"
+                                                                    -- "        Index Cond: (doc_tsv @@ to_tsquery('залом:*'::text))"
+                                                                    -- "Planning Time: 0.123 ms"
+                                                                    -- "Execution Time: 0.194 ms"
 select attname, correlation from pg_stats where tablename='cargo' order by correlation desc nulls last;
---create index on ref_client_worker using brin(time);
-create index on cargo using brin(worker_id);
-
-
-explain (costs off,analyze)
-select *
-from cargo
-where worker_id > 1000 and worker_id <  1
-                                                                    -- Index Scan using cargo_worker_id_idx on cargo (actual time=0.004..0.004 rows=0 loops=1)
-                                                                    -- Index Cond: ((worker_id > 1000) AND (worker_id < 1))
-                                                                    -- Planning Time: 0.177 ms
-                                                                    -- Execution Time: 0.018 ms
-
 
 -- trigger after delete
 CREATE OR REPLACE FUNCTION func() RETURNS trigger AS
 $$BEGIN
+IF OLD.price > 10 THEN
    UPDATE "cargo" SET estimated_value = estimated_value - 10
       WHERE barcode = OLD.cargo_barcode;
+      END IF;
    RETURN OLD;
-END;$$ LANGUAGE plpgsql;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER add_money
    AFTER DELETE ON packing FOR EACH ROW
    EXECUTE PROCEDURE func();
-
-select * from cargo where barcode = '26591'
-
 delete from packing where cargo_barcode = '26591'
 
-
+select * from cargo where barcode = '179';
+DELETE FROM packing where cargo_barcode = '179';
+select * from packing where cargo_barcode = '179';
 
 -- trigger after insert
 
@@ -166,20 +167,23 @@ CREATE OR REPLACE FUNCTION UPD()
 RETURNS trigger AS
 $$
 begin
-UPDATE client SET full_name = (SELECT REVERSE (n2.full_name) from client as n2 where (n2.client_number = client.client_number));
+if new.salary > 10000 THEN
+if new.full_name IS NULL THEN raise warning 'null full name %', now();
+end if;
+UPDATE worker SET full_name = (SELECT REVERSE (n2.full_name) from worker as n2 where (n2.id = worker.id));
+END IF;
 return new;
 end;
 $$ language plpgsql;
 
 CREATE TRIGGER change_name
-   AFTER INSERT ON client FOR EACH ROW
+   AFTER INSERT ON worker FOR EACH ROW
    EXECUTE PROCEDURE UPD();
 
-insert into client (full_name, client_number, client_type) values ('anyrak', '455678900987', 'sender')
+insert into worker (id, full_name, position, working_hours, salary, dep_number ) values (1, 'Karyna', 'manager', '17-21', 15000, 10)
+insert into worker (id, position, working_hours, salary, dep_number ) values (2, 'manager', '17-21', 17000, 10)
 
-select * from client where client_number = '455678900987';
-
-delete from client where client_number = '455678900987';
+select * from worker where id = 1;
 
 
 -- transactions
@@ -232,3 +236,68 @@ rollback
 delete from department where number_d=69
 update department set street_number = '9'
 START TRANSACTION ISOLATION LEVEL READ COMMITTED;
+
+
+
+
+
+
+--- brin
+
+CREATE INDEX idx_temperature_log_log_timestamp ON temperature_log USING BRIN (log_timestamp) WITH (pages_per_range = 128);
+
+vacuum analyse;
+
+EXPLAIN ANALYZE SELECT AVG(temperature) FROM temperature_log WHERE log_timestamp>='2016-04-04' AND log_timestamp<'2016-04-05';
+
+
+
+
+CREATE TABLE temperature_log (log_id serial, sensor_id int, log_timestamp timestamp without time zone, temperature int);
+
+INSERT INTO temperature_log(sensor_id,log_timestamp,temperature) VALUES (1,generate_series('2016-01-01'::timestamp,'2016-12-31'::timestamp,'1 second'),round(random()*100)::int);
+                                                                        -- This will create 31536001 rows of sensor test data.
+EXPLAIN ANALYZE SELECT AVG(temperature) FROM temperature_log WHERE log_timestamp>='2016-04-04' AND log_timestamp<'2016-04-05';
+                                                                        --
+                                                                            -- "Finalize Aggregate  (cost=415466.26..415466.27 rows=1 width=32) (actual time=19886.473..19886.473 rows=1 loops=1)"
+                                                                            -- "  ->  Gather  (cost=415466.04..415466.25 rows=2 width=32) (actual time=19886.392..19898.631 rows=3 loops=1)"
+                                                                            -- "        Workers Planned: 2"
+                                                                            -- "        Workers Launched: 2"
+                                                                            -- "        ->  Partial Aggregate  (cost=414466.04..414466.05 rows=1 width=32) (actual time=19864.624..19864.624 rows=1 loops=3)"
+                                                                            -- "              ->  Parallel Seq Scan on temperature_log  (cost=0.00..414288.19 rows=71140 width=4) (actual time=5157.923..19850.356 rows=28800 loops=3)"
+                                                                            -- "                    Filter: ((log_timestamp >= '2016-04-04 00:00:00'::timestamp without time zone) AND (log_timestamp < '2016-04-05 00:00:00'::timestamp without time zone))"
+                                                                            -- "                    Rows Removed by Filter: 10483200"
+                                                                            -- "Planning Time: 2.359 ms"
+                                                                            -- "Execution Time: 19898.688 ms"
+
+CREATE INDEX idx_temperature_log_log_timestamp ON temperature_log USING btree (log_timestamp);
+ vacuum analyze;
+  EXPLAIN ANALYZE SELECT AVG(temperature) FROM temperature_log WHERE log_timestamp>='2016-04-04' AND log_timestamp<'2016-04-05';
+                                                                            -- "Aggregate  (cost=4169.11..4169.12 rows=1 width=32) (actual time=26.590..26.590 rows=1 loops=1)"
+                                                                            -- "  ->  Index Scan using idx_temperature_log_log_timestamp on temperature_log  (cost=0.56..3907.82 rows=104513 width=4) (actual time=0.027..17.720 rows=86400 loops=1)"
+                                                                            -- "        Index Cond: ((log_timestamp >= '2016-04-04 00:00:00'::timestamp without time zone) AND (log_timestamp < '2016-04-05 00:00:00'::timestamp without time zone))"
+                                                                            -- "Planning Time: 0.082 ms"
+                                                                            -- "Execution Time: 26.620 ms"
+
+DROP INDEX idx_temperature_log_log_timestamp;
+
+
+CREATE INDEX idx_temperature_log_log_timestamp ON temperature_log USING BRIN (log_timestamp) WITH (pages_per_range = 128);
+
+vacuum analyse;
+
+EXPLAIN ANALYZE SELECT AVG(temperature) FROM temperature_log WHERE log_timestamp>='2016-04-04' AND log_timestamp<'2016-04-05';
+
+                                                                      --                                                                         "Finalize Aggregate  (cost=287057.40..287057.41 rows=1 width=32) (actual time=17.461..17.462 rows=1 loops=1)"
+                                                                        -- "  ->  Gather  (cost=287057.18..287057.39 rows=2 width=32) (actual time=17.374..19.921 rows=3 loops=1)"
+                                                                        -- "        Workers Planned: 2"
+                                                                        -- "        Workers Launched: 2"
+                                                                        -- "        ->  Partial Aggregate  (cost=286057.18..286057.19 rows=1 width=32) (actual time=13.063..13.064 rows=1 loops=3)"
+                                                                        -- "              ->  Parallel Bitmap Heap Scan on temperature_log  (cost=54.39..285968.71 rows=35388 width=4) (actual time=0.584..9.113 rows=28800 loops=3)"
+                                                                        -- "                    Recheck Cond: ((log_timestamp >= '2016-04-04 00:00:00'::timestamp without time zone) AND (log_timestamp < '2016-04-05 00:00:00'::timestamp without time zone))"
+                                                                        -- "                    Rows Removed by Index Recheck: 4693"
+                                                                        -- "                    Heap Blocks: lossy=263"
+                                                                        -- "                    ->  Bitmap Index Scan on idx_temperature_log_log_timestamp  (cost=0.00..33.16 rows=100434 width=0) (actual time=1.128..1.129 rows=6400 loops=1)"
+                                                                        -- "                          Index Cond: ((log_timestamp >= '2016-04-04 00:00:00'::timestamp without time zone) AND (log_timestamp < '2016-04-05 00:00:00'::timestamp without time zone))"
+                                                                        -- "Planning Time: 0.122 ms"
+                                                                        -- "Execution Time: 20.006 ms"

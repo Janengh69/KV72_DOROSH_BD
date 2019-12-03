@@ -28,7 +28,6 @@ class Controller(Ui_Database):
 
         super().__init__(MainWindow)
         self.gen_label.setText('')
-        self.db.delete_all()
         self.pushButton.clicked.connect(self.saveInfo)
         self.genData.clicked.connect(self.gen_values_call)
         self.pushButton_2.clicked.connect(self.showDialog)

@@ -102,13 +102,16 @@ def randomString(stringLength=8, flag=True):
         letters = string.digits
     return ''.join(random.choice(letters) for i in range(stringLength))
 
+def output(filename, data):
+        with open(filename, 'w+') as f:
+            f.writelines("%s\n" % place for place in data)
+
 
 class Database:
 
     def __init__(self):
         try:
             self.engine = create_engine('postgresql://postgres:6969@localhost:5433/postgres')
-            session_class = sessionmaker(bind=self.engine)
             self.metadata = MetaData() #DeclarativeBase.metadata
             self.metadata.reflect(self.engine)
             self.base = automap_base(metadata=self.metadata)
@@ -116,8 +119,7 @@ class Database:
             session_class = sessionmaker(bind=self.engine)
 
             self.session = session_class()
-            st = self.base.classes['client']
-            print(st)
+
 
         except ArgumentError:
             print('Argument error')
@@ -154,6 +156,7 @@ class Database:
         query = delete(temp).where(text(str(where)))
         results = self.session.execute(query)
         results = self.session.execute(select([temp])).fetchall()
+        output('output.txt', results)
         self.session.commit()
 
     def insert_request(self, table, condition):
@@ -161,6 +164,8 @@ class Database:
         res = eval('dict(' + condition + ')')
         query = insert(temp)
         ResultProxy = self.session.execute(query, res)
+        results = self.session.execute(select([temp])).fetchall()
+        output('output.txt', results)
         self.session.commit()
 
     def update_request(self, table, condition):
@@ -169,7 +174,8 @@ class Database:
         res = eval('dict(' + what + ')')
         query = update(temp).values(res).where(text(where))
         results = self.session.execute(query)
-        # results = self.session.execute(select([temp])).fetchall()
+        results = self.session.execute(select([temp])).fetchall()
+        output('output.txt', results)
         self.session.commit()
 
     def requestFormat(self, comboTable, comboAction, textAction, Controller):
@@ -181,6 +187,8 @@ class Database:
                 Controller.error.setText('Done')
 
             except Exception as error:
+                session_class = sessionmaker(bind=self.engine)
+                self.session = session_class()
                 Controller.error.setText(str(error))
         elif comboAction == 'insert':
             try:
@@ -188,6 +196,8 @@ class Database:
                 Controller.error.setText('Done')
 
             except Exception as error:
+                session_class = sessionmaker(bind=self.engine)
+                self.session = session_class()
                 Controller.error.setText(str(error))
         elif comboAction == 'update':
             try:
@@ -195,8 +205,9 @@ class Database:
                 Controller.error.setText('Done')
 
             except Exception as error:
-                 Controller.error.setText(str(error))
-
+                session_class = sessionmaker(bind=self.engine)
+                self.session = session_class()
+                Controller.error.setText(str(error))
 
     def generate_values(self):
         with open('data.json', 'r+') as f:
@@ -259,8 +270,3 @@ class Database:
     def gen_values(self, Controller):
         print(Controller)
         self.generate_values()
-        # if self.Gen:
-        # Controller.gen_label.setText('Done!')
-        # else:
-        # Controller.gen_label.setText('Error while generating!')
-
