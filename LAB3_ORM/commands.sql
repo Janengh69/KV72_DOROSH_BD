@@ -1,3 +1,4 @@
+--study
 create index on cargo(barcode);
 analyze;  //Query returned successfully in 324 msec.
 explain (costs off) select * from cargo where barcode=831; -- 65msec Index Scan using cargo_worker_id_idx on cargo
@@ -102,6 +103,7 @@ explain (analyze, costs off) select full_name from client where lower(full_name)
 
 -- properties of brin indexes
 
+-- GIN INDEX
 
 create table ts(doc text, doc_tsv tsvector);
 insert into ts(doc) values
@@ -186,7 +188,7 @@ insert into worker (id, position, working_hours, salary, dep_number ) values (2,
 select * from worker where id = 1;
 
 
--- transactions
+-- TRANSACTIONS
 
 -- 1)
 START TRANSACTION ISOLATION LEVEL SERIALIZABLE;
@@ -242,14 +244,13 @@ START TRANSACTION ISOLATION LEVEL READ COMMITTED;
 
 
 
---- brin
+--- BRI INDEX
 
 CREATE INDEX idx_temperature_log_log_timestamp ON temperature_log USING BRIN (log_timestamp) WITH (pages_per_range = 128);
 
 vacuum analyse;
 
 EXPLAIN ANALYZE SELECT AVG(temperature) FROM temperature_log WHERE log_timestamp>='2016-04-04' AND log_timestamp<'2016-04-05';
-
 
 
 
