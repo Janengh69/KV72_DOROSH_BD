@@ -3,7 +3,8 @@
 ### Засоби оптимізації роботи СУБД PostgreSQL
 #### Варіант №4
 **[Посилання](https://docs.google.com/document/d/1HRYdYICEkETOSFuok1jywzDriqnLt-tQhTs8fu8qGAs/edit?usp=sharing) на документ з описом структури БД**  
-   
+  **[Посилання](https://docs.google.com/document/d/1cmWzo-cjTBg2poEmovRr1aaH3cLTt71famOcrZSzHkM/edit?usp=sharing) на додаток до завдань**
+  
    **Сутності**
 1) **Клієнт:**
   - Тип клієнту;
